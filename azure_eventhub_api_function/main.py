@@ -20,16 +20,20 @@ def main(events: func.EventHubEvent) -> str:
     Returns:
         string: "Ingestion completed".
     """
-    chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
+    #chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
     events_to_send = []
 
     logging.info("Events received by the function: {}. Type: {}".format(
         str(events), type(events)
     ))
 
+    count = 0
     # Iterating over the list of event hub logs to decode and json serialize them.
     for event in events:
         try:
+            logging.info("Record received: {}".format(
+                event.get_body().decode('utf-8')
+            ))
             records = json.loads(event.get_body().decode('utf-8'))['records']
             logging.info("Parsing record: {}".format(records))
         # Raise error if the event received from the event hub is not json serializeable. 
@@ -37,9 +41,13 @@ def main(events: func.EventHubEvent) -> str:
             print("Could not json serialize the event hub log")
             raise RuntimeError(f"The log data from event hub is not JSON serializable") from error
         events_to_send.append(records)
+        count = count + 1
+        if count == 3:
+            logging.info("Breaking the loop now to end the testing..")
+            break
 
     logging.info("Events planned to send to Azure: {}".format(
-        events_to_send
+        str(events_to_send)
     ))
 
     # try:
