@@ -212,7 +212,7 @@
                       "EventhubNamespace": "[parameters('EventhubNamespace')]",
                       "SharedAccessKey": "[parameters('SharedAccessKey')]",
                       "EVENT_HUB_CONNECTION_STRING": "[variables('Eventhubconnstr')]",
-                      "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/crestdatasystems/google-3p-crest/blob/test_azure_func/AzureEventhub.zip?raw=true"
+                      "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/crestdatasystems/google-3p-crest/blob/enhance-azure-google/AzureEventhub.zip?raw=true"
                   }
               }
           ]
