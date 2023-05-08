@@ -69,7 +69,7 @@ def main(events: List[func.EventHubEvent]) -> None:
     # Ingest Azure EventHub logs to Chronicle.
     ingest.ingest(logs_to_send, chronicle_data_type)
   except Exception as error:
-    raise Exception("Unable to push the data to the Chronicle.") from error
+    raise Exception("Unable to push the data to the Chronicle. Error: {} $$$$".format(error)) from error
 
   logging.info(
       "Total %s log(s) are successfully ingested to Chronicle.",
