@@ -18,8 +18,8 @@ import logging
 from typing import List
 
 import azure.functions as func
-from .common import ingest
-from .common import utils
+from common import ingest
+from common import utils
 
 # Environment variable constants.
 ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"

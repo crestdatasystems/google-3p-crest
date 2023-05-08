@@ -18,14 +18,16 @@ import unittest
 from unittest import mock
 
 INGESTION_SCRIPTS_PATH = ""
+# INGESTION_SCRIPTS_PATH = "/Users/karan.panchal/Documents/Projects/Google-3P/repo/Chronicle-Github/ingestion-scripts/"
 SCRIPT_PATH = ""
-
+# sys.path.append(INGESTION_SCRIPTS_PATH)
+# print(sys.path)
 # CONSTANTS.
 ENV_VARS = ["AZURE_AD"]
 
+sys.modules[f"{INGESTION_SCRIPTS_PATH}common"] = mock.MagicMock()
 sys.modules[f"{INGESTION_SCRIPTS_PATH}common.ingest"] = mock.MagicMock()
 sys.modules[f"{INGESTION_SCRIPTS_PATH}common.utils"] = mock.MagicMock()
-
 import main
 
 
@@ -44,6 +46,36 @@ class TestEventHubToChronicleIngestion(unittest.TestCase):
     assert mock_ingest.call_count == 1
 
   @mock.patch(f"{SCRIPT_PATH}main.utils")
+  @mock.patch(f"{SCRIPT_PATH}main.ingest.ingest")
+  def test_list_data_parsing(self, mock_ingest, mock_utils):
+    """Test case to verify for successful ingestion of logs."""
+    mock_utils.get_env_var.side_effect = ENV_VARS
+
+    events = [mock.MagicMock()]
+    events[0].get_body.return_value = b'{"records": ["e1","e2","e3","e4"]}'
+    main.main(events)
+    args, kwargs = mock_ingest.call_args
+
+    events_expected = ["e1","e2","e3","e4"]
+    assert mock_ingest.call_count == 1
+    assert args[0] == events_expected
+
+  @mock.patch(f"{SCRIPT_PATH}main.utils")
+  @mock.patch(f"{SCRIPT_PATH}main.ingest.ingest")
+  def test_str_data_parsing(self, mock_ingest, mock_utils):
+    """Test case to verify for successful ingestion of logs."""
+    mock_utils.get_env_var.side_effect = ENV_VARS
+
+    events = [mock.MagicMock()]
+    events[0].get_body.return_value = b'{"records": "e1"}'
+    main.main(events)
+    args, kwargs = mock_ingest.call_args
+
+    event_expected = ["e1"]
+    assert mock_ingest.call_count == 1
+    assert args[0] == event_expected
+
+  @mock.patch(f"{SCRIPT_PATH}main.utils")
   def test_json_decode_error(self, mock_utils):
     """Test case to verify json loads for failure."""
     mock_utils.get_env_var.side_effect = ENV_VARS
@@ -54,7 +86,7 @@ class TestEventHubToChronicleIngestion(unittest.TestCase):
 
     self.assertEqual(
         str(error.exception),
-        "The log data from Azure EventHub is not JSON serializable.")
+        "The log data from Azure EventHub is not JSON serializable. Error: Expecting value: line 1 column 14 (char 13)")
 
   @mock.patch(f"{SCRIPT_PATH}main.utils")
   @mock.patch(f"{SCRIPT_PATH}main.ingest")
@@ -69,4 +101,4 @@ class TestEventHubToChronicleIngestion(unittest.TestCase):
       main.main(events)
 
     self.assertEqual(
-        str(error.exception), "Unable to push the data to the Chronicle.")
+        str(error.exception), f"Unable to push the data to the Chronicle. Error: ")
