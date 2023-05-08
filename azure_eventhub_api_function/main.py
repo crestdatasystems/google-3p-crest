@@ -18,8 +18,8 @@ import logging
 from typing import List
 
 import azure.functions as func
-from .common import ingest
-from .common import utils
+#from common import ingest
+#from common import utils
 
 # Environment variable constants.
 ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"
@@ -32,7 +32,7 @@ def main(events: List[func.EventHubEvent]) -> None:
       events: Events from the Azure Event Hub.
   """
   # Fetch environment variables.
-  chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
+  #chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
   logs_to_send = []
 
   logging.info("**** Received events: {}. Type: {}".format(str(events), type(events)))
@@ -62,6 +62,8 @@ def main(events: List[func.EventHubEvent]) -> None:
   logging.info("Parsed {} events from Azure EventHub. Sending them to Chronicle.".format(
     logs_count
   ))
+
+  logging.info("**** Logs to send: {}".format(logs_to_send, len(logs_to_send)))
 
   try:
     # Ingest Azure EventHub logs to Chronicle.
