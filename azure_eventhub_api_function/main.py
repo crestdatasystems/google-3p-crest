@@ -18,8 +18,8 @@ import logging
 from typing import List
 
 import azure.functions as func
-from common import ingest
-from common import utils
+from .common import ingest
+from .common import utils
 
 # Environment variable constants.
 ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"
@@ -34,14 +34,14 @@ def main(events: List[func.EventHubEvent]) -> None:
   # Fetch environment variables.
   chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
   logs_to_send = []
-  logging.info("Events recieved: {}".format(events))
 
-  logging.info("Received logs from Azure EventHub. Iterating over the logs and sending them to Chronicle.")
-
+  logging.info("**** Received events: {}. Type: {}".format(str(events), type(events)))
+  
   # Iterating over the list of EventHub logs to decode and JSON serialize them.
   for event in events:
     try:
       records = json.loads(event.get_body().decode("utf-8"))["records"]
+      logging.info("Record to process: {}, type: {}".format(records, type(records)))
     # Raise error if the event received from the Azure EventHub is not JSON
     # serializable.
     except json.JSONDecodeError as error:
@@ -52,8 +52,10 @@ def main(events: List[func.EventHubEvent]) -> None:
 
     # Events are nested in the list form in the EventHub log message.
     if isinstance(records, list):
+      logging.info("**** In if condition")
       logs_to_send.extend(records)
     else:
+      logging.info("**** In else condition")
       logs_to_send.append(records)
 
   logs_count = len(logs_to_send)
@@ -69,5 +71,5 @@ def main(events: List[func.EventHubEvent]) -> None:
 
   logging.info(
       "Total %s log(s) are successfully ingested to Chronicle.",
-      logs_count,
+      len(logs_to_send),
   )
