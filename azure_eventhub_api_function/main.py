@@ -34,42 +34,35 @@ def main(events: List[func.EventHubEvent]) -> None:
   # Fetch environment variables.
   chronicle_data_type = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
   logs_to_send = []
-
-  logging.info("**** Received events: {}. Type: {}".format(str(events), type(events)))
   
   # Iterating over the list of EventHub logs to decode and JSON serialize them.
   for event in events:
     try:
       records = json.loads(event.get_body().decode("utf-8"))["records"]
-      logging.info("Record to process: {}, type: {}".format(records, type(records)))
+
     # Raise error if the event received from the Azure EventHub is not JSON
     # serializable.
     except json.JSONDecodeError as error:
       print("Could not JSON serialize the Azure EventHub log.")
       raise RuntimeError(
-          "The log data from Azure EventHub is not JSON serializable."
+          f"The log data from Azure EventHub is not JSON serializable. Error: {error}"
       ) from error
 
     # Events are nested in the list form in the EventHub log message.
+    # Example: {"records": [event1, event2, event3, ...]}.
     if isinstance(records, list):
-      logging.info("**** In if condition")
       logs_to_send.extend(records)
     else:
-      logging.info("**** In else condition")
       logs_to_send.append(records)
 
   logs_count = len(logs_to_send)
-  logging.info("Parsed {} events from Azure EventHub. Sending them to Chronicle.".format(
-    logs_count
-  ))
-
-  logging.info("**** Logs to send: {}. Length: {}".format(logs_to_send, len(logs_to_send)))
+  logging.info(f"Parsed {logs_count} events from Azure EventHub. Sending them to Chronicle.")
 
   try:
     # Ingest Azure EventHub logs to Chronicle.
     ingest.ingest(logs_to_send, chronicle_data_type)
   except Exception as error:
-    raise Exception("Unable to push the data to the Chronicle. Error: {} $$$$".format(error)) from error
+    raise Exception(f"Unable to push the data to the Chronicle. Error: {error}") from error
 
   logging.info(
       "Total %s log(s) are successfully ingested to Chronicle.",
