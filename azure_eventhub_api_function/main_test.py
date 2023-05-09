@@ -93,7 +93,7 @@ class TestEventHubToChronicleIngestion(unittest.TestCase):
   def test_ingest_for_error(self, mock_ingest, mock_utils):
     """Test case to verify error is raised for failure in ingest."""
     mock_utils.get_env_var.side_effect = ENV_VARS
-    mock_ingest.ingest.side_effect = Exception()
+    mock_ingest.ingest.side_effect = Exception("Custom error")
     events = [mock.MagicMock()]
     events[0].get_body.return_value = b'{"records": []}'
 
@@ -101,4 +101,4 @@ class TestEventHubToChronicleIngestion(unittest.TestCase):
       main.main(events)
 
     self.assertEqual(
-        str(error.exception), f"Unable to push the data to the Chronicle. Error: ")
+        str(error.exception), f"Unable to push the data to the Chronicle. Error: Custom error")
